@@ -2,7 +2,7 @@ import serial
 import crcmod
 import time
 import struct
-
+import sql
 # CRC16校验，返回整型数
 def crc16(veritydata):
     if not veritydata:
@@ -139,5 +139,5 @@ def communcation(add):
         if data==None:
             return '连接失败', other_StyleTime
         else:
-
+            sql.insert_data_to_db(add, data, other_StyleTime)
             return data, other_StyleTime
