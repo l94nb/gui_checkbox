@@ -93,19 +93,20 @@ class DemoMain(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # 子节点跟随和父节点状态选择
     def subcheckboxStateChanged(self, item, column):  # 选中树形列表中的父节点，子节点全部选中
-        count = item.childCount()  # 子节点个数
-        if item.checkState(column) == 0:
-            for f in range(count):
-                item.child(f).setCheckState(0, 0)
-            self.parentcheckboxStateChanged0(item)
+        if column == 0:
+            count = item.childCount()  # 子节点个数
+            if item.checkState(column) == 0:
+                for f in range(count):
+                    item.child(f).setCheckState(0, 0)
+                self.parentcheckboxStateChanged0(item)
 
-        if item.checkState(column) == 1:
-            self.parentcheckboxStateChanged1(item)
+            if item.checkState(column) == 1:
+                self.parentcheckboxStateChanged1(item)
 
-        if item.checkState(column) == 2:
-            for f in range(count):
-                item.child(f).setCheckState(0, 2)
-            self.parentcheckboxStateChanged2(item)
+            if item.checkState(column) == 2:
+                for f in range(count):
+                    item.child(f).setCheckState(0, 2)
+                self.parentcheckboxStateChanged2(item)
 
     # 父节点取消选中
     def parentcheckboxStateChanged0(self, item):  # 状态2为选中，状态0为未选
@@ -132,7 +133,7 @@ class DemoMain(QtWidgets.QMainWindow, Ui_MainWindow):
         flag = 1
         parent = QtWidgets.QTreeWidgetItem.parent(item)
         if parent is not None:
-            if parent.checkState(0) == 0 or 1:
+            if parent.checkState(0) == 0 or parent.checkState(0) == 1:
                 count = parent.childCount()
                 for f in range(count):
                     if parent.child(f).checkState(0) == 0:
