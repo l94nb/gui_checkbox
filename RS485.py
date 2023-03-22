@@ -1,5 +1,6 @@
 import serial
 import crcmod
+import datetime
 import time
 import struct
 import sql
@@ -126,11 +127,7 @@ def communcation(add):
         com.write(send_data)
         recv_data = com.read(regnums*2+5)
         #endtime = time.time()
-        now = int(time.time())
-        # 转换为其他日期格式，如："%Y-%m-%d %H:%M:%S"
-        timeArr = time.localtime(now)
-        other_StyleTime = time.strftime("%Y-%m-%d %H:%M:%S", timeArr)
-
+        other_StyleTime = datetime.datetime.now()
         # if len(recv_data) > 0:
         #     print("recv: ", recv_data.hex())
         # print(f"used time: {endtime-starttime:.3f}")
@@ -139,5 +136,5 @@ def communcation(add):
         if data==None:
             return '连接失败', other_StyleTime
         else:
-            sql.insert_data_to_db(add, data, other_StyleTime)
+            sql.insert_data_to_db(add, data, str(other_StyleTime))
             return data, other_StyleTime
