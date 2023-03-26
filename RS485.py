@@ -103,16 +103,10 @@ def smodbus03or04(recvdata, valueformat=0, intsigned=False):
         #     retdata.append(fvalue)
         #     print(f'Data{i+1}: {fvalue:.3f}')
     elif valueformat == 1:
-        shortintnums = bytenums / 2
-        print("short int nums: ", str(shortintnums))
-        for i in range(int(shortintnums)):
-            btemp = recvdata[3+i*2:5+i*2]
-            shortvalue = int.from_bytes(btemp, byteorder="big", signed=intsigned)
-            retdata.append(shortvalue)
-            print(f"Data{i+1}: {shortvalue}")
+        pass
     return num
 
-def communcation(add):
+def communcation(add,collector_id):
     slaveadd = add
     startreg = 40000
     regnums = 10
@@ -121,6 +115,10 @@ def communcation(add):
     try:
         com = serial.Serial("com9", 9600, timeout=0.1)
     except:
+        # data=3.44
+        # other_StyleTime = datetime.datetime.now()
+        # other_StyleTime = other_StyleTime.strftime('%Y-%m-%d %H:%M:%S.%f')
+        # sql.insert_data_to_db(collector_id[add], data, other_StyleTime)
         return '未连接', '未连接'
     else:
         #starttime = time.time()
@@ -128,6 +126,7 @@ def communcation(add):
         recv_data = com.read(regnums*2+5)
         #endtime = time.time()
         other_StyleTime = datetime.datetime.now()
+        other_StyleTime = other_StyleTime.strftime('%Y-%m-%d %H:%M:%S.%f')
         # if len(recv_data) > 0:
         #     print("recv: ", recv_data.hex())
         # print(f"used time: {endtime-starttime:.3f}")
@@ -136,5 +135,5 @@ def communcation(add):
         if data==None:
             return '连接失败', other_StyleTime
         else:
-            sql.insert_data_to_db(add, data, str(other_StyleTime))
+            sql.insert_data_to_db(collector_id[add], data, other_StyleTime)
             return data, other_StyleTime

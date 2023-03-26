@@ -1,7 +1,7 @@
 import pymysql
 import os
 
-def insert_data_to_db(collector_id: int, collected_data: float, collected_time: str):
+def insert_data_to_db(collector_id: str, collected_data: float, collected_time: str):
     # 连接数据库
     try:
         conn = pymysql.connect(host='127.0.0.1', user='root', password='password', database='boiler')

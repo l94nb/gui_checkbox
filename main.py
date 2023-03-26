@@ -10,6 +10,7 @@ import time
 import RS485
 path = './DEV_RS485.csv'
 ls=[]
+collector_id=[]
 ct=0
 
 # class MyProcess(QtCore.QProcess):
@@ -171,7 +172,7 @@ def show(shared_data):
     demo.show()
     sys.exit(app.exec_())
 
-def checkflag(shared_data):
+def checkflag(shared_data,collector_id):
     while True:
         #for i in range(len(shared_data['flag'])):
             #if shared_data['flag'][i] == 1:
@@ -181,7 +182,7 @@ def checkflag(shared_data):
             temp_data = shared_data['data']
             temp_time = shared_data['time']
             if shared_data['flag'][i] == 1:
-                data,now_time=RS485.communcation(i)
+                data,now_time=RS485.communcation(i,collector_id)
                 temp_data[i] = data
                 temp_time[i] = now_time
             shared_data['data'] = temp_data
@@ -199,7 +200,8 @@ if __name__ == '__main__':
         # convert to nested dicts/lists
         data = defaultdict(lambda: defaultdict(list))
         for record in reader:
-           ct=ct+1
+            collector_id.append(record[2])
+            ct=ct+1
     ls_flag = list(map(lambda x: 0, range(ct)))
     ls_data = list(map(lambda x: '--', range(ct)))
     ls_time = list(map(lambda x: '--:--', range(ct)))
@@ -210,7 +212,7 @@ if __name__ == '__main__':
     # p1 = Process(target=show, args=(ls_flag, ls_data, ls_time,))
     # p2 = Process(target=checkflag, args=(ls_flag, ls_data, ls_time,))
     p1 = Process(target=show, args=(shared_data,))
-    p2 = Process(target=checkflag, args=(shared_data,))
+    p2 = Process(target=checkflag, args=(shared_data,collector_id,))
     p1.start()
     p2.start()
     p1.join()
