@@ -4,6 +4,7 @@ import datetime
 import time
 import struct
 import sql
+import random
 # CRC16校验，返回整型数
 def crc16(veritydata):
     if not veritydata:
@@ -115,16 +116,16 @@ def communcation(add,collector_id):
     try:
         com = serial.Serial("com9", 9600, timeout=0.1)
     except:
-        # data=3.44
-        # other_StyleTime = datetime.datetime.now()
-        # other_StyleTime = other_StyleTime.strftime('%Y-%m-%d %H:%M:%S.%f')
-        # sql.insert_data_to_db(collector_id[add], data, other_StyleTime)
-        return '未连接', '未连接'
+        data= random.randint(0, 10)
+        other_StyleTime = datetime.datetime.now()
+        other_StyleTime = other_StyleTime.strftime('%Y-%m-%d %H:%M:%S.%f')
+        sql.insert_data_to_db(collector_id[add], data, other_StyleTime)
+        return data, other_StyleTime
+        #return '未连接', '未连接'
     else:
         #starttime = time.time()
         com.write(send_data)
         recv_data = com.read(regnums*2+5)
-        #endtime = time.time()
         other_StyleTime = datetime.datetime.now()
         other_StyleTime = other_StyleTime.strftime('%Y-%m-%d %H:%M:%S.%f')
         # if len(recv_data) > 0:

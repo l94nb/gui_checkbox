@@ -8,6 +8,11 @@ import multiprocessing
 from multiprocessing import Process, Manager
 import time
 import RS485
+import pyqtgraph as pg
+import sql_select
+import datetime
+import random
+import numpy as np
 path = './DEV_RS485.csv'
 ls=[]
 collector_id=[]
@@ -31,6 +36,7 @@ class DemoMain(QtWidgets.QMainWindow, Ui_MainWindow):
         # self.ls_time = ls_time
 
         self.shared_data=shared_data
+        #self.colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k']
         #多进程传参
         #self.shared_data = shared_data
         # 调用Ui_Form的setupUi()方法构建页面
@@ -45,6 +51,52 @@ class DemoMain(QtWidgets.QMainWindow, Ui_MainWindow):
         self.timer = QTimer()
         self.timer.timeout.connect(self.updateData)
         self.timer.start(100)#1000=1s
+
+        #plot初始化
+        self.plot_init()
+        self.timer1 = QTimer()
+        self.timer1.setInterval(1)
+        self.timer1.timeout.connect(self.update_plotdata)
+        self.timer1.start()
+        self.showMaximized()
+
+    def plot_init(self):
+        self.x = [[] for i in range(20)]
+        self.y = [[] for i in range(20)]
+        pg.setConfigOptions(antialias=True)
+        self.plot = pg.PlotWidget()
+        self.widget.setLayout(QtWidgets.QVBoxLayout())
+        self.widget.layout().addWidget(self.plot)
+        # self.plot.plot(self.x, self.y, pen=pg.mkPen('b', width=2))
+        # 设置 x 轴范围为 0-3000毫秒，y 轴范围为 0-10
+        self.plot.setRange(xRange=[0, 3000], yRange=[0, 10])
+        # 设置时间轴单位为毫秒
+        self.plot.setLabel('bottom', 'Time', units='ms')
+        self.symbols = ['t', 's', 'o', 'd', '+', 'x', 'p', 'h', 'star', 't1', 't2', 't3']
+
+    def update_plotdata(self):
+        now = datetime.datetime.now()
+        data_dict=sql_select.getdate(now)
+        if data_dict is not None:
+            id_list = list(data_dict.keys())
+            for item in self.plot.items():
+                if isinstance(item, pg.TextItem):
+                    self.plot.removeItem(item)
+            self.plot.clearPlots()
+            ct=0
+            for i in id_list:
+                data_list = data_dict.get(i, {}).get('data_list', [])
+                timestamp_list = data_dict.get(i, {}).get('timestamp_list', [])
+                if ct>11:
+                    self.plot.plot(timestamp_list, data_list, pen=pg.mkPen(pg.intColor(ct), width=2),
+                                   symbol=self.symbols[ct-12])
+                else:
+                    self.plot.plot(timestamp_list, data_list, pen=pg.mkPen(pg.intColor(ct), width=2), symbol=self.symbols[ct])
+                ct = ct + 1
+                label = pg.TextItem(
+                    html='<div style="text-align: center"><span style="color: red; font-size: 8pt;">'+i+'</span></div>')
+                label.setPos(timestamp_list[-1], data_list[-1])
+                self.plot.addItem(label)
 
     def loadData(self):
         # 迭代读取，有序字典
@@ -91,6 +143,7 @@ class DemoMain(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ls_flag = list(map(lambda x: 0, range(len(self.ls))))
         self.treeWidget.addTopLevelItem(root)  # 将创建的树节点添加到树控件中
         self.treeWidget.itemChanged.connect(self.subcheckboxStateChanged)
+        self.treeWidget.expandAll()
 
     # 子节点跟随和父节点状态选择
     def subcheckboxStateChanged(self, item, column):  # 选中树形列表中的父节点，子节点全部选中
