@@ -4,18 +4,18 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import QTimer
 import sys,csv
 from collections import defaultdict
-import multiprocessing
 from multiprocessing import Process, Manager
 import time
 import RS485
 import pyqtgraph as pg
 import sql_select
 import datetime
-import random
-import numpy as np
+
 path = './DEV_RS485.csv'
 ls=[]
 collector_id=[]
+type = []
+unit = []
 ct=0
 
 # class MyProcess(QtCore.QProcess):
@@ -69,7 +69,7 @@ class DemoMain(QtWidgets.QMainWindow, Ui_MainWindow):
         self.widget.layout().addWidget(self.plot)
         # self.plot.plot(self.x, self.y, pen=pg.mkPen('b', width=2))
         # 设置 x 轴范围为 0-3000毫秒，y 轴范围为 0-10
-        self.plot.setRange(xRange=[0, 3000], yRange=[0, 10])
+        self.plot.setRange(xRange=[0, 10000], yRange=[0, 10])
         # 设置时间轴单位为毫秒
         self.plot.setLabel('bottom', 'Time', units='ms')
         self.symbols = ['t', 's', 'o', 'd', '+', 'x', 'p', 'h', 'star', 't1', 't2', 't3']
@@ -118,7 +118,7 @@ class DemoMain(QtWidgets.QMainWindow, Ui_MainWindow):
         self.treeWidget.setColumnWidth(2, 150)
         root = QtWidgets.QTreeWidgetItem(self.treeWidget)  # 创建节点
         root.setText(0, "转换炉")  # 设置根节点文本
-        root.setCheckState(0, 0)  # 设置第二列的值
+        root.setCheckState(0, 0)  # 设置复选框
         for row, (text1, values) in enumerate(self.data.items()):  # 遍历字典
             child = QtWidgets.QTreeWidgetItem(root)  # 创建子节点
             child.setText(0, text1)  # 设置第一列的文本
@@ -176,7 +176,7 @@ class DemoMain(QtWidgets.QMainWindow, Ui_MainWindow):
             else:
                 parent.setCheckState(0, 1)
 
-    ##父节点半选
+    # 父节点半选
     def parentcheckboxStateChanged1(self, item):
         parent = QtWidgets.QTreeWidgetItem.parent(item)
         if parent is not None:
@@ -207,7 +207,7 @@ class DemoMain(QtWidgets.QMainWindow, Ui_MainWindow):
                 temp = self.shared_data['flag']
                 temp[i] = 0
                 self.shared_data['flag'] = temp
-        print(self.shared_data['flag'])
+        # print(self.shared_data['flag'])
         # self.shared_data['message'] = self.ls_flag
 
     def updateData(self):
@@ -225,7 +225,7 @@ def show(shared_data):
     demo.show()
     sys.exit(app.exec_())
 
-def checkflag(shared_data,collector_id):
+def checkflag(shared_data,collector_id,type,unit):
     while True:
         #for i in range(len(shared_data['flag'])):
             #if shared_data['flag'][i] == 1:
@@ -235,7 +235,7 @@ def checkflag(shared_data,collector_id):
             temp_data = shared_data['data']
             temp_time = shared_data['time']
             if shared_data['flag'][i] == 1:
-                data,now_time=RS485.communcation(i,collector_id)
+                data,now_time=RS485.communcation(i,collector_id,type,unit)
                 temp_data[i] = data
                 temp_time[i] = now_time
             shared_data['data'] = temp_data
@@ -254,6 +254,8 @@ if __name__ == '__main__':
         data = defaultdict(lambda: defaultdict(list))
         for record in reader:
             collector_id.append(record[2])
+            type.append(record[7])
+            unit.append(record[8])
             ct=ct+1
     ls_flag = list(map(lambda x: 0, range(ct)))
     ls_data = list(map(lambda x: '--', range(ct)))
@@ -265,7 +267,7 @@ if __name__ == '__main__':
     # p1 = Process(target=show, args=(ls_flag, ls_data, ls_time,))
     # p2 = Process(target=checkflag, args=(ls_flag, ls_data, ls_time,))
     p1 = Process(target=show, args=(shared_data,))
-    p2 = Process(target=checkflag, args=(shared_data,collector_id,))
+    p2 = Process(target=checkflag, args=(shared_data,collector_id,type,unit,))
     p1.start()
     p2.start()
     p1.join()

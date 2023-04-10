@@ -9,7 +9,7 @@ def getdate(now):
     except pymysql.Error:
         return None
     # 计算最近三秒的时间范围
-    three_seconds_ago = now - timedelta(seconds=3)
+    three_seconds_ago = now - timedelta(seconds=10)
 
     # 查询最近三秒内的数据
     query = "SELECT * FROM data_table WHERE 采集时间 >= %s"
